@@ -14,16 +14,17 @@ export const Home: React.FC = () => {
 
   // If user is authenticated, they shouldn't see this page (handled by App.tsx)
   // But we'll keep this check just in case
+  if (user) {
+    return null;
+  }
+
+  // Show loading state only briefly, then show home page
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
         <div className="text-gray-600">Loading...</div>
       </div>
     );
-  }
-
-  if (user) {
-    return null;
   }
 
   // Close auth modal when user successfully authenticates

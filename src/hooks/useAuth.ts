@@ -32,11 +32,15 @@ export function useAuth() {
 
   useEffect(() => {
     if (!isFirebaseConfigured()) {
+      console.warn('Firebase not configured - running in local mode');
       setLoading(false);
+      setUser(null);
       return;
     }
 
-    const unsub = onAuthStateChanged(firebaseAuth(), async (firebaseUser) => {
+    let unsub: (() => void) | undefined;
+    try {
+      unsub = onAuthStateChanged(firebaseAuth(), async (firebaseUser) => {
       if (firebaseUser) {
         try {
           // Get ID token and verify with backend
@@ -63,9 +67,17 @@ export function useAuth() {
         setUser(null);
       }
       setLoading(false);
-    });
+      });
+    } catch (error) {
+      console.error('Firebase auth initialization error:', error);
+      setLoading(false);
+      setUser(null);
+      return;
+    }
 
-    return () => unsub();
+    return () => {
+      if (unsub) unsub();
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

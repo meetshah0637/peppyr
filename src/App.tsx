@@ -27,14 +27,17 @@ function App() {
     setIsQuickbarOpen(false);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-600">Loading...</div>
-    )
+  // Show home page immediately if not authenticated (don't wait for auth to load)
+  if (!user && !loading) {
+    return <Home />
   }
 
-  if (!user) {
-    return <Home />
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    )
   }
 
   const renderPage = () => {
