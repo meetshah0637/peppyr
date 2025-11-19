@@ -10,7 +10,7 @@ import { AnalyticsDashboard } from './components/AnalyticsDashboard';
 import { Quickbar } from './components/Quickbar';
 import { HeaderAuth } from './components/HeaderAuth';
 import { useAuth } from './hooks/useAuth';
-import { Landing } from './components/Landing';
+import { Home } from './components/Home';
 
 type Page = 'templates' | 'contacts' | 'analytics';
 
@@ -34,7 +34,7 @@ function App() {
   }
 
   if (!user) {
-    return <Landing />
+    return <Home />
   }
 
   const renderPage = () => {

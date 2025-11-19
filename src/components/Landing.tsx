@@ -14,16 +14,46 @@ export const Landing: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
 
   const handleEmail = async () => {
+    // Validate email format before submitting
+    if (!email || !email.trim()) {
+      setError('Please enter your email address')
+      return
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email.trim())) {
+      setError('Please enter a valid email address')
+      return
+    }
+    
+    if (!password || password.length < 6) {
+      setError(mode === 'signin' ? 'Please enter your password' : 'Password must be at least 6 characters')
+      return
+    }
+    
     setBusy(true)
     setError(null)
     try {
       if (mode === 'signin') {
-        await login(email, password)
+        await login(email.trim(), password)
       } else {
-        await signup(email, password)
+        await signup(email.trim(), password)
       }
     } catch (e: any) {
-      setError(e?.message || 'Authentication failed')
+      // Handle Firebase errors more gracefully
+      const errorMessage = e?.message || 'Authentication failed'
+      if (errorMessage.includes('invalid-email')) {
+        setError('Please enter a valid email address')
+      } else if (errorMessage.includes('user-not-found')) {
+        setError('No account found with this email. Please sign up first.')
+      } else if (errorMessage.includes('wrong-password')) {
+        setError('Incorrect password. Please try again.')
+      } else if (errorMessage.includes('email-already-in-use')) {
+        setError('An account with this email already exists. Please sign in instead.')
+      } else {
+        setError(errorMessage)
+      }
     } finally {
       setBusy(false)
     }
