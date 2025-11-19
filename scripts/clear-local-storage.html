@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Peppyr Local Storage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #b91c1c;
+        }
+        .info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Clear Peppyr Local Storage</h1>
+    
+    <div class="info">
+        <p><strong>Why you're seeing templates:</strong></p>
+        <p>The app stores templates in two places:</p>
+        <ul>
+            <li><strong>Firestore (Cloud)</strong> - Your database (which you cleared)</li>
+            <li><strong>localStorage (Browser)</strong> - Your browser's local storage (still has old data)</li>
+        </ul>
+        <p>When Firestore is empty, the app automatically falls back to localStorage, which is why you still see templates.</p>
+    </div>
+
+    <div id="status"></div>
+
+    <h2>Current Local Storage Data:</h2>
+    <pre id="data" style="background: #f9fafb; padding: 10px; border-radius: 5px; overflow-x: auto;"></pre>
+
+    <button onclick="clearStorage()">Clear All Local Storage</button>
+    <button onclick="clearTemplatesOnly()">Clear Templates Only</button>
+    <button onclick="refresh()">Refresh</button>
+
+    <script>
+        function refresh() {
+            const templates = localStorage.getItem('appointment-library-templates');
+            const settings = localStorage.getItem('appointment-library-settings');
+            
+            document.getElementById('data').textContent = JSON.stringify({
+                templates: templates ? JSON.parse(templates) : null,
+                settings: settings ? JSON.parse(settings) : null
+            }, null, 2);
+        }
+
+        function clearStorage() {
+            if (confirm('Are you sure you want to clear ALL local storage? This cannot be undone.')) {
+                localStorage.removeItem('appointment-library-templates');
+                localStorage.removeItem('appointment-library-settings');
+                document.getElementById('status').innerHTML = 
+                    '<div class="success">✅ All local storage cleared! Refresh your app to see the changes.</div>';
+                refresh();
+            }
+        }
+
+        function clearTemplatesOnly() {
+            if (confirm('Clear templates from local storage? This will remove templates but keep settings.')) {
+                localStorage.removeItem('appointment-library-templates');
+                document.getElementById('status').innerHTML = 
+                    '<div class="success">✅ Templates cleared! Refresh your app to see the changes.</div>';
+                refresh();
+            }
+        }
+
+        // Load data on page load
+        refresh();
+    </script>
+</body>
+</html>
+

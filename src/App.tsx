@@ -1,0 +1,85 @@
+/**
+ * Main App component for Appointment Library Quickbar
+ * Manages global state and renders the template library with quickbar overlay
+ */
+
+import React, { useState } from 'react';
+import { TemplateLibrary } from './components/TemplateLibrary';
+import { ContactList } from './components/ContactList';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { Quickbar } from './components/Quickbar';
+import { HeaderAuth } from './components/HeaderAuth';
+import { useAuth } from './hooks/useAuth';
+import { Landing } from './components/Landing';
+
+type Page = 'templates' | 'contacts' | 'analytics';
+
+function App() {
+  const [isQuickbarOpen, setIsQuickbarOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState<Page>('templates');
+  const { user, loading } = useAuth();
+
+  const handleOpenQuickbar = () => {
+    setIsQuickbarOpen(true);
+  };
+
+  const handleCloseQuickbar = () => {
+    setIsQuickbarOpen(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-gray-600">Loading...</div>
+    )
+  }
+
+  if (!user) {
+    return <Landing />
+  }
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case 'templates':
+        return <TemplateLibrary />;
+      case 'contacts':
+        return <ContactList />;
+      case 'analytics':
+        return <AnalyticsDashboard />;
+      default:
+        return <TemplateLibrary />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <HeaderAuth currentPage={currentPage} onPageChange={setCurrentPage} />
+      <GlobalHotkeyHandler onOpenQuickbar={handleOpenQuickbar} />
+      {renderPage()}
+      <Quickbar isOpen={isQuickbarOpen} onClose={handleCloseQuickbar} />
+    </div>
+  );
+}
+
+/**
+ * Global hotkey handler component
+ * Listens for Ctrl+K / Cmd+K to open quickbar
+ */
+const GlobalHotkeyHandler: React.FC<{ onOpenQuickbar: () => void }> = ({ onOpenQuickbar }) => {
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Ctrl+K (Windows/Linux) or Cmd+K (macOS)
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        onOpenQuickbar();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onOpenQuickbar]);
+
+  return null;
+};
+
+export default App;
+

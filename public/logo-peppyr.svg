@@ -1,0 +1,26 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Modern speech bubble with gradient -->
+  <defs>
+    <linearGradient id="bubbleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main speech bubble -->
+  <path d="M95 15H25C20.0294 15 16 19.0294 16 24V74C16 78.9706 20.0294 83 25 83H45L60 100L75 83H95C99.9706 83 104 78.9706 104 74V24C104 19.0294 99.9706 15 95 15Z" fill="url(#bubbleGradient)" rx="8"/>
+  
+  <!-- Accent dots representing messages/templates -->
+  <circle cx="35" cy="45" r="6" fill="url(#accentGradient)"/>
+  <circle cx="60" cy="45" r="6" fill="url(#accentGradient)"/>
+  <circle cx="85" cy="45" r="6" fill="url(#accentGradient)"/>
+  
+  <!-- Text lines representing message content -->
+  <rect x="30" y="58" width="50" height="4" rx="2" fill="white" opacity="0.9"/>
+  <rect x="30" y="66" width="40" height="4" rx="2" fill="white" opacity="0.7"/>
+</svg>
+
