@@ -7,9 +7,12 @@
 // ALWAYS use relative URLs in production to avoid CORS and domain mismatch issues
 // This ensures the API is called on the same domain as the frontend
 const getApiBaseUrl = () => {
-  // In production, ALWAYS use relative URL (same domain - no CORS issues)
+  // Check if we're in a browser environment (not SSR)
+  const isBrowser = typeof window !== 'undefined';
+  
+  // In production OR when running in browser (not localhost), use relative URL
   // This works regardless of www vs non-www, and avoids redirect issues
-  if (import.meta.env.PROD) {
+  if (import.meta.env.PROD || (isBrowser && !window.location.hostname.includes('localhost'))) {
     return '/api';
   }
   
