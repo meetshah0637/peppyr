@@ -57,9 +57,9 @@ class ApiClient {
     const tokenResult = this.getAuthToken?.();
     const token = tokenResult instanceof Promise ? await tokenResult : tokenResult;
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     };
 
     if (token) {
@@ -114,7 +114,11 @@ class ApiClient {
         method: 'POST',
       });
     } finally {
-      this.setAuthTokenGetter(originalGetter);
+      if (originalGetter) {
+        this.setAuthTokenGetter(originalGetter);
+      } else {
+        this.getAuthToken = null;
+      }
     }
   }
 
