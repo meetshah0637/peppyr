@@ -12,6 +12,11 @@ export const Home: React.FC = () => {
   const { user, loading } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[Home] Component rendered', { user: user?.email || 'null', loading, showAuth });
+  }, [user, loading, showAuth]);
+
   // If user is authenticated, they shouldn't see this page (handled by App.tsx)
   // But we'll keep this check just in case
   if (user) {

@@ -19,6 +19,11 @@ function App() {
   const [currentPage, setCurrentPage] = useState<Page>('templates');
   const { user, loading } = useAuth();
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('[App] User state:', { user: user?.email || 'null', loading });
+  }, [user, loading]);
+
   const handleOpenQuickbar = () => {
     setIsQuickbarOpen(true);
   };
