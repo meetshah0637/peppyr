@@ -35,21 +35,40 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin (like mobile apps or curl requests or same-origin)
     if (!origin) return callback(null, true);
     
+    // Check exact match first
     if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      // In development, allow localhost
-      if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+      return callback(null, true);
     }
+    
+    // Check if origin matches any allowed origin (handles www vs non-www)
+    const originMatches = allowedOrigins.some(allowed => {
+      // Exact match
+      if (origin === allowed) return true;
+      // Handle www vs non-www variations
+      const originWithoutWww = origin.replace(/^https?:\/\/(www\.)?/, '');
+      const allowedWithoutWww = allowed.replace(/^https?:\/\/(www\.)?/, '');
+      return originWithoutWww === allowedWithoutWww;
+    });
+    
+    if (originMatches) {
+      return callback(null, true);
+    }
+    
+    // In development, allow localhost
+    if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+      return callback(null, true);
+    }
+    
+    // Log blocked origin for debugging
+    console.warn('CORS blocked origin:', origin, 'Allowed origins:', allowedOrigins);
+    callback(new Error('Not allowed by CORS'));
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
