@@ -4,16 +4,11 @@
  */
 
 // API base URL - defaults to localhost for development
-// In production, use relative URLs to avoid CORS and domain mismatch issues
-// Set VITE_API_URL only if API is on a different domain
+// ALWAYS use relative URLs in production to avoid CORS and domain mismatch issues
+// This ensures the API is called on the same domain as the frontend
 const getApiBaseUrl = () => {
-  // If VITE_API_URL is explicitly set, use it (for different domain)
-  if (import.meta.env.VITE_API_URL) {
-    const baseUrl = String(import.meta.env.VITE_API_URL).replace(/\/+$/, ''); // Remove trailing slashes
-    return `${baseUrl}/api`;
-  }
-  
-  // In production, use relative URL (same domain - no CORS issues)
+  // In production, ALWAYS use relative URL (same domain - no CORS issues)
+  // This works regardless of www vs non-www, and avoids redirect issues
   if (import.meta.env.PROD) {
     return '/api';
   }
