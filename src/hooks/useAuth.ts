@@ -132,16 +132,19 @@ export function useAuth() {
   }, []);
 
   const logout = useCallback(async () => {
-    if (!isFirebaseConfigured()) {
-      setError('Firebase is not configured. Authentication is disabled.');
-      return;
-    }
     try {
-      await signOut(firebaseAuth());
+      // Clear user state immediately for better UX
       setUser(null);
+      setLoading(false);
+      
+      if (isFirebaseConfigured()) {
+        await signOut(firebaseAuth());
+      }
+      // User state is already cleared above, onAuthStateChanged will confirm it
     } catch (err: any) {
+      console.error('Logout error:', err);
+      // Even if signOut fails, we've already cleared the user state
       setError(err.message || 'Logout failed');
-      throw err;
     }
   }, []);
 

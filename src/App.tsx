@@ -27,17 +27,18 @@ function App() {
     setIsQuickbarOpen(false);
   };
 
-  // Show home page immediately if not authenticated (don't wait for auth to load)
-  if (!user && !loading) {
+  // Show home page if not authenticated
+  // Only show loading if we're actually loading AND we don't have a user yet
+  if (!user) {
+    if (loading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
+          <div className="text-gray-600">Loading...</div>
+        </div>
+      )
+    }
+    // Show home page when not authenticated and not loading
     return <Home />
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    )
   }
 
   const renderPage = () => {
