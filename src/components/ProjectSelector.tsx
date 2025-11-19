@@ -131,6 +131,7 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
       <button
         onClick={onCreateProject}
         disabled={isLoading}
+        data-tutorial="projects"
         className="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         title="Create new project"
       >

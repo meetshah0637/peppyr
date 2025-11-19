@@ -18,10 +18,16 @@ export function useAuth() {
 
   // Set up API client token getter to provide Firebase ID tokens
   useEffect(() => {
+    if (!isFirebaseConfigured()) {
+      // If Firebase is not configured, set a token getter that returns null
+      apiClient.setAuthTokenGetter(async () => null);
+      return;
+    }
+    
     apiClient.setAuthTokenGetter(async () => {
-      const currentUser = firebaseAuth().currentUser;
-      if (!currentUser) return null;
       try {
+        const currentUser = firebaseAuth().currentUser;
+        if (!currentUser) return null;
         return await currentUser.getIdToken();
       } catch (error) {
         console.error('Failed to get ID token:', error);
@@ -45,19 +51,22 @@ export function useAuth() {
           // Verify user with backend API
           const { user: apiUser } = await apiClient.verifyToken(idToken);
           
-          setUser({
+          const newUser = {
             ...apiUser,
             firebaseUser
-          });
+          };
+          
+          setUser(newUser);
         } catch (err: any) {
           console.error('Failed to verify user with backend:', err);
           // Fallback to Firebase user data
-          setUser({
+          const fallbackUser = {
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName,
             firebaseUser
-          });
+          };
+          setUser(fallbackUser);
         }
       } else {
         setUser(null);
@@ -84,8 +93,9 @@ export function useAuth() {
 
   const signup = useCallback(async (email: string, password: string, displayName?: string) => {
     if (!isFirebaseConfigured()) {
-      setError('Firebase is not configured. Authentication is disabled.');
-      return;
+      const error = new Error('Firebase is not configured. Authentication is disabled.');
+      setError(error.message);
+      throw error;
     }
     setError(null);
     try {
@@ -99,9 +109,14 @@ export function useAuth() {
       }
 
       // User will be verified automatically via onAuthStateChanged
+      // The onAuthStateChanged listener will handle setting the user state
+      // and verifying with the backend
     } catch (err: any) {
-      setError(err.message || 'Signup failed');
-      throw err;
+      console.error('Signup error:', err);
+      // Preserve the original error with code and message
+      const error = err || new Error('Signup failed');
+      setError(error.message || 'Signup failed');
+      throw error;
     }
   }, []);
 

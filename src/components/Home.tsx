@@ -11,6 +11,14 @@ import { Landing } from './Landing';
 export const Home: React.FC = () => {
   const { user, loading } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+
+  // Close auth modal when user successfully authenticates
+  React.useEffect(() => {
+    if (user) {
+      setShowAuth(false);
+    }
+  }, [user]);
 
   // If user is authenticated, they shouldn't see this page (handled by App.tsx)
   // But we'll keep this check just in case
@@ -26,13 +34,6 @@ export const Home: React.FC = () => {
     return null;
   }
 
-  // Close auth modal when user successfully authenticates
-  React.useEffect(() => {
-    if (user) {
-      setShowAuth(false);
-    }
-  }, [user]);
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
       {/* Navigation Bar */}
@@ -42,13 +43,19 @@ export const Home: React.FC = () => {
             <Logo width={40} height={40} showText={true} variant="compact" />
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setShowAuth(true)}
+                onClick={() => {
+                  setAuthMode('signin');
+                  setShowAuth(true);
+                }}
                 className="px-4 py-2 text-gray-700 hover:text-gray-900 transition-colors font-medium"
               >
                 Sign in
               </button>
               <button
-                onClick={() => setShowAuth(true)}
+                onClick={() => {
+                  setAuthMode('signup');
+                  setShowAuth(true);
+                }}
                 className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-medium"
               >
                 Get Started
@@ -73,7 +80,10 @@ export const Home: React.FC = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <button
-              onClick={() => setShowAuth(true)}
+              onClick={() => {
+                setAuthMode('signup');
+                setShowAuth(true);
+              }}
               className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-xl hover:scale-105 transition-all duration-200 font-semibold text-lg flex items-center gap-2"
             >
               Get Started Free
@@ -482,7 +492,10 @@ export const Home: React.FC = () => {
             Join appointment setters who are saving hours daily and increasing their response rates with data-driven outreach.
           </p>
           <button
-            onClick={() => setShowAuth(true)}
+            onClick={() => {
+              setAuthMode('signup');
+              setShowAuth(true);
+            }}
             className="px-8 py-4 bg-white text-blue-600 rounded-xl hover:shadow-2xl hover:scale-105 transition-all duration-200 font-semibold text-lg"
           >
             Get Started Free
@@ -509,7 +522,7 @@ export const Home: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h3 className="text-xl font-bold text-gray-900">Sign in to Peppyr</h3>
+              <h3 className="text-xl font-bold text-gray-900">{authMode === 'signup' ? 'Create your account' : 'Sign in to Peppyr'}</h3>
               <button
                 onClick={() => setShowAuth(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -520,7 +533,7 @@ export const Home: React.FC = () => {
               </button>
             </div>
             <div className="p-6">
-              <Landing />
+              <Landing defaultMode={authMode} />
             </div>
           </div>
         </div>

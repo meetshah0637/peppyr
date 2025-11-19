@@ -189,6 +189,7 @@ export const TemplateLibrary: React.FC = () => {
           <div className="flex gap-2">
             <button
               onClick={() => setIsParameterManagerOpen(true)}
+              data-tutorial="parameters"
               className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
               title="Manage template parameters (e.g., {name}, {company})"
             >
@@ -200,6 +201,7 @@ export const TemplateLibrary: React.FC = () => {
             </button>
             <button
               onClick={handleCreateTemplate}
+              data-tutorial="templates"
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

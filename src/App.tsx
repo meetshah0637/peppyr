@@ -11,6 +11,7 @@ import { Quickbar } from './components/Quickbar';
 import { HeaderAuth } from './components/HeaderAuth';
 import { useAuth } from './hooks/useAuth';
 import { Home } from './components/Home';
+import { OnboardingTutorial, useTutorial } from './components/OnboardingTutorial';
 
 type Page = 'templates' | 'contacts' | 'analytics';
 
@@ -18,6 +19,8 @@ function App() {
   const [isQuickbarOpen, setIsQuickbarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<Page>('templates');
   const { user, loading } = useAuth();
+  const { showTutorial, setShowTutorial } = useTutorial();
+
 
   const handleOpenQuickbar = () => {
     setIsQuickbarOpen(true);
@@ -56,6 +59,15 @@ function App() {
       <GlobalHotkeyHandler onOpenQuickbar={handleOpenQuickbar} />
       {renderPage()}
       <Quickbar isOpen={isQuickbarOpen} onClose={handleCloseQuickbar} />
+      {showTutorial && user && (
+        <OnboardingTutorial 
+          onComplete={() => {
+            setShowTutorial(false);
+          }} 
+          onNavigate={setCurrentPage}
+          currentPage={currentPage}
+        />
+      )}
     </div>
   );
 }

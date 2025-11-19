@@ -37,13 +37,21 @@ export const HeaderAuth: React.FC<HeaderAuthProps> = ({ currentPage, onPageChang
       <div className="max-w-7xl mx-auto">
         <div className="p-3 flex items-center justify-between gap-3 text-sm">
           <div className="flex items-center gap-6">
-            <Logo width={32} height={32} showText={true} variant="compact" />
+            <button
+              onClick={() => onPageChange('templates')}
+              className="hover:opacity-80 transition-opacity cursor-pointer flex items-center"
+              title="Go to templates"
+              aria-label="Go to templates"
+            >
+              <Logo width={32} height={32} showText={true} variant="compact" />
+            </button>
             {user && (
               <nav className="flex gap-1">
                 {navItems.map(item => (
                   <button
                     key={item.key}
                     onClick={() => onPageChange(item.key)}
+                    data-tutorial={item.key === 'contacts' ? 'contacts' : item.key === 'analytics' ? 'analytics' : undefined}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       currentPage === item.key
                         ? 'bg-blue-100 text-blue-700'

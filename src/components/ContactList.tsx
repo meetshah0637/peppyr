@@ -558,6 +558,7 @@ export const ContactList: React.FC = () => {
         <div className="mb-6 flex gap-4 items-center">
           <button
             onClick={() => setCsvUploadOpen(true)}
+            data-tutorial="csv-upload"
             className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             📄 Upload CSV
