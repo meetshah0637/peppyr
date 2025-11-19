@@ -5,6 +5,7 @@
 
 import app from '../server/index.js';
 
-// Export as Vercel serverless function
+// Export Express app for Vercel serverless functions
+// Vercel's @vercel/node adapter handles Express apps automatically
 export default app;
 
