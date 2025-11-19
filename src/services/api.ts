@@ -4,10 +4,25 @@
  */
 
 // API base URL - defaults to localhost for development
-// Set VITE_API_URL environment variable in production
-const API_BASE_URL = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : 'http://localhost:3001/api';
+// In production, use relative URLs to avoid CORS and domain mismatch issues
+// Set VITE_API_URL only if API is on a different domain
+const getApiBaseUrl = () => {
+  // If VITE_API_URL is explicitly set, use it (for different domain)
+  if (import.meta.env.VITE_API_URL) {
+    const baseUrl = String(import.meta.env.VITE_API_URL).replace(/\/+$/, ''); // Remove trailing slashes
+    return `${baseUrl}/api`;
+  }
+  
+  // In production, use relative URL (same domain - no CORS issues)
+  if (import.meta.env.PROD) {
+    return '/api';
+  }
+  
+  // Development: use local backend
+  return 'http://localhost:3001/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 export interface User {
   uid: string;
