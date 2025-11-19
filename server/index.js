@@ -87,7 +87,14 @@ try {
 
   // Try to load from environment variable first
   if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    try {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+      console.log('✅ Loaded Firebase service account from environment variable');
+    } catch (parseError) {
+      console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT:', parseError.message);
+      console.error('Make sure FIREBASE_SERVICE_ACCOUNT is valid JSON');
+      // Continue without Firebase - will use mock mode
+    }
   } 
   // Fallback to service-account.json file
   else {
@@ -95,21 +102,37 @@ try {
       const serviceAccountPath = join(__dirname, 'service-account.json');
       const serviceAccountFile = readFileSync(serviceAccountPath, 'utf-8');
       serviceAccount = JSON.parse(serviceAccountFile);
+      console.log('✅ Loaded Firebase service account from file');
     } catch (fileError) {
       // File doesn't exist or can't be read - that's okay, we'll use mock mode
+      console.warn('⚠️  service-account.json not found, running in mock mode');
     }
   }
 
   if (serviceAccount) {
-    initializeApp({
-      credential: cert(serviceAccount)
-    });
-    db = getFirestore();
+    try {
+      // Check if Firebase is already initialized (important for serverless)
+      if (!admin.apps.length) {
+        initializeApp({
+          credential: cert(serviceAccount)
+        });
+        console.log('✅ Firebase Admin initialized successfully');
+      } else {
+        console.log('✅ Firebase Admin already initialized');
+      }
+      db = getFirestore();
+    } catch (initError) {
+      console.error('❌ Failed to initialize Firebase Admin:', initError.message);
+      console.error('Stack:', initError.stack);
+      // Continue without Firebase - will use mock mode
+    }
   } else {
+    console.warn('⚠️  No Firebase service account found, running in mock mode');
   }
 } catch (error) {
-  console.error('Failed to initialize Firebase Admin:', error.message);
-  console.warn('Server will run in mock mode without database.');
+  console.error('❌ Unexpected error during Firebase initialization:', error.message);
+  console.error('Stack:', error.stack);
+  console.warn('⚠️  Server will run in mock mode without database.');
 }
 
 // Mock storage for development (when Firebase is not configured)
@@ -1661,6 +1684,21 @@ app.delete('/api/projects/:id', verifyToken, async (req, res) => {
   }
 });
 
+// Global error handler - catch any unhandled errors
+app.use((err, req, res, next) => {
+  console.error('❌ Unhandled error:', err.message);
+  console.error('Stack:', err.stack);
+  res.status(500).json({ 
+    error: 'A server error has occurred',
+    message: process.env.NODE_ENV === 'production' ? undefined : err.message
+  });
+});
+
+// 404 handler for undefined routes
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
 // Export app for serverless environments (Vercel)
 export default app;
 
@@ -1670,6 +1708,7 @@ if (process.env.VERCEL !== '1' && !process.env.VERCEL_ENV) {
     console.log(`🚀 Peppyr API server running on port ${PORT}`);
     console.log(`📡 Health check: http://localhost:${PORT}/api/health`);
     if (!db) {
+      console.warn('⚠️  Running without Firebase database (mock mode)');
     }
   });
 }
