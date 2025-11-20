@@ -179,10 +179,6 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({ onComple
       return 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[100]';
     }
 
-    const rect = highlightedElement.getBoundingClientRect();
-    const scrollY = window.scrollY;
-    const scrollX = window.scrollX;
-
     switch (step.position) {
       case 'top':
         return `fixed z-[100] left-1/2 transform -translate-x-1/2`;
@@ -232,23 +228,24 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({ onComple
         // Calculate if tooltip would go below viewport
         const estimatedTooltipBottom = bottomY + tooltipHeight;
         const viewportBottom = scrollY + viewportHeight;
+        const minBottomSpacing = 80; // Minimum space from bottom of viewport
         
         // If tooltip would be cut off at bottom, position it above the element instead
         let finalY: number;
         let finalTransform: string;
         
-        if (estimatedTooltipBottom > viewportBottom - spacing) {
+        if (estimatedTooltipBottom > viewportBottom - minBottomSpacing) {
           // Position above element instead
           finalY = rect.top + scrollY - spacing;
           finalTransform = 'translate(-50%, -100%)';
         } else {
-          // Position below element
-          finalY = bottomY;
+          // Position below element, but ensure minimum spacing from bottom
+          finalY = Math.min(bottomY, viewportBottom - tooltipHeight - minBottomSpacing);
           finalTransform = 'translateX(-50%)';
         }
         
         // Ensure tooltip doesn't go above viewport either
-        finalY = Math.max(spacing, Math.min(finalY, viewportHeight + scrollY - tooltipHeight - spacing));
+        finalY = Math.max(spacing, Math.min(finalY, viewportHeight + scrollY - tooltipHeight - minBottomSpacing));
         
         // Center horizontally but ensure it stays within viewport
         const bottomX = Math.max(
@@ -374,7 +371,7 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({ onComple
           <p className="text-gray-600 mb-6 leading-relaxed break-words whitespace-normal text-base">{step.description}</p>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-between gap-2 sm:gap-4 flex-wrap">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
             <button
               onClick={handlePrevious}
               disabled={currentStep === 0}
@@ -383,7 +380,7 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({ onComple
               Previous
             </button>
             
-            <div className="flex gap-2 flex-1 justify-center">
+            <div className="flex gap-2 flex-1 justify-center min-w-0">
               {step.id === 'projects' && (
                 <button
                   onClick={() => {
@@ -435,7 +432,7 @@ export const OnboardingTutorial: React.FC<OnboardingTutorialProps> = ({ onComple
 
             <button
               onClick={handleNext}
-              className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all font-medium whitespace-nowrap"
+              className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all font-medium whitespace-nowrap flex-shrink-0"
             >
               {currentStep === tutorialSteps.length - 1 ? 'Get Started' : 'Next'}
             </button>
