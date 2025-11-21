@@ -507,7 +507,7 @@ export const Home: React.FC = () => {
       <footer className="bg-gray-900 text-gray-400 py-12">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <Logo width={40} height={40} showText={true} variant="compact" className="mx-auto mb-4" />
-          <p className="text-sm">© 2024 Peppyr. All rights reserved.</p>
+          <p className="text-sm">© 2025 Peppyr. All rights reserved.</p>
         </div>
       </footer>
 
