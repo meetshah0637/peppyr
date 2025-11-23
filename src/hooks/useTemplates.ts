@@ -24,11 +24,6 @@ export const useTemplates = () => {
   const parametersRef = useRef(parameters);
   useEffect(() => {
     parametersRef.current = parameters;
-    console.log('Parameters ref updated in useTemplates:', {
-      parameterCount: Object.keys(parameters).length,
-      parameterKeys: Object.keys(parameters),
-      parameters
-    });
   }, [parameters]);
 
   // Load templates function
@@ -207,21 +202,7 @@ export const useTemplates = () => {
         }
       });
       
-      console.log('Copying template:', { 
-        id, 
-        contactId,
-        bodyPreview: template.body.substring(0, 100) + '...', 
-        parameters: normalizedParams,
-        parameterKeys: Object.keys(normalizedParams),
-        parameterCount: Object.keys(normalizedParams).length,
-        hasName: 'name' in normalizedParams,
-        nameValue: normalizedParams['name'],
-        allParams: JSON.stringify(normalizedParams)
-      });
-      
       const processedBody = replaceParameters(template.body, normalizedParams);
-      console.log('Processed body preview:', processedBody.substring(0, 100) + '...');
-      console.log('Was replaced:', processedBody !== template.body);
       
       await clipboard.copyText(processedBody);
       

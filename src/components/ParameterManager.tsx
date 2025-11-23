@@ -46,7 +46,6 @@ export const ParameterManager: React.FC<ParameterManagerProps> = ({ isOpen, onCl
   // Initialize local state when modal opens or parameters change
   useEffect(() => {
     if (isOpen) {
-      console.log('ParameterManager opened, loading parameters:', parameters);
       setLocalParams({ ...parameters });
     }
   }, [isOpen, parameters]);
@@ -61,17 +60,12 @@ export const ParameterManager: React.FC<ParameterManagerProps> = ({ isOpen, onCl
         }
       }
       
-      console.log('Saving parameters:', paramsToSave);
-      console.log('Parameter count:', Object.keys(paramsToSave).length);
-      
       // Save parameters - this will update the state immediately
-      const savedParams = await updateParameters(paramsToSave);
-      console.log('Parameters saved, returned:', savedParams);
+      await updateParameters(paramsToSave);
       
       // Force a reload to ensure all components have the latest parameters
       // This ensures the ref in useTemplates is updated
       await reloadParameters();
-      console.log('Parameters reloaded, now available for immediate use');
       
       // Show success toast with longer duration (same as template saves)
       showToast('Parameters saved successfully!', 'success', 5000);
@@ -80,7 +74,6 @@ export const ParameterManager: React.FC<ParameterManagerProps> = ({ isOpen, onCl
       // The toast will remain visible even after modal closes
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log('Parameters are now available for use');
       onClose();
     } catch (error) {
       console.error('Failed to save parameters:', error);

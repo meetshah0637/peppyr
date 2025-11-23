@@ -64,7 +64,6 @@ export const useParameters = () => {
           // Load from backend API for authenticated users
           try {
             const apiParams = await apiClient.getParameters();
-            console.log('Loaded parameters from API:', apiParams);
             // Normalize keys to lowercase
             const normalized: Record<string, string> = {};
             if (apiParams) {
@@ -72,14 +71,12 @@ export const useParameters = () => {
                 normalized[key.toLowerCase().trim()] = value;
               });
             }
-            console.log('Normalized parameters from API:', normalized);
             // Create new object reference to ensure React detects change
             setParameters({ ...normalized });
           } catch (error) {
             console.error('Failed to load parameters from API:', error);
             // Fallback to localStorage
             const local = storage.getSettings()[PARAMETERS_STORAGE_KEY] || {};
-            console.log('Loaded parameters from localStorage (fallback):', local);
             // Normalize keys
             const normalized: Record<string, string> = {};
             Object.entries(local).forEach(([key, value]) => {
@@ -91,7 +88,6 @@ export const useParameters = () => {
         } else {
           // Anonymous mode - use localStorage
           const local = storage.getSettings()[PARAMETERS_STORAGE_KEY] || {};
-          console.log('Loaded parameters from localStorage:', local);
           // Normalize keys
           const normalized: Record<string, string> = {};
           Object.entries(local).forEach(([key, value]) => {
@@ -111,24 +107,17 @@ export const useParameters = () => {
 
   // Save parameters
   const updateParameters = useCallback(async (newParameters: Record<string, string>) => {
-    console.log('updateParameters called with:', newParameters);
-    console.log('Parameter keys:', Object.keys(newParameters));
-    console.log('Parameter values:', Object.entries(newParameters).map(([k, v]) => `${k}="${v}"`));
-    
     // Normalize keys to lowercase to avoid case sensitivity issues
     const normalizedParams: Record<string, string> = {};
     Object.entries(newParameters).forEach(([key, value]) => {
       normalizedParams[key.toLowerCase().trim()] = value.trim();
     });
     
-    console.log('Normalized parameters:', normalizedParams);
-    
     // Update state immediately (optimistic update)
     // Create a new object reference to ensure React detects the change
     // Use functional update to ensure we get the latest state
     setParameters(prev => {
       const updated = { ...normalizedParams };
-      console.log('Parameters state updated immediately:', updated);
       return updated;
     });
 
@@ -136,7 +125,6 @@ export const useParameters = () => {
     if (isLoggedIn && user?.uid) {
       try {
         const saved = await apiClient.updateParameters(normalizedParams);
-        console.log('Parameters saved to API:', saved);
         // Ensure state is set with saved values (in case API normalized them)
         if (saved) {
           const savedNormalized: Record<string, string> = {};
@@ -146,7 +134,6 @@ export const useParameters = () => {
           // Create new object reference - this will trigger useEffect in useTemplates
           setParameters(prev => {
             const updated = { ...savedNormalized };
-            console.log('Parameters state updated from API response:', updated);
             return updated;
           });
           // Return the saved normalized params
@@ -158,7 +145,6 @@ export const useParameters = () => {
         const settings = storage.getSettings();
         settings[PARAMETERS_STORAGE_KEY] = normalizedParams;
         storage.saveSettings(settings);
-        console.log('Parameters saved to localStorage (fallback):', normalizedParams);
         // State already updated above, return normalized params
         return normalizedParams;
       }
@@ -167,7 +153,6 @@ export const useParameters = () => {
       const settings = storage.getSettings();
       settings[PARAMETERS_STORAGE_KEY] = normalizedParams;
       storage.saveSettings(settings);
-      console.log('Parameters saved to localStorage:', normalizedParams);
       // State already updated above, return normalized params
       return normalizedParams;
     }

@@ -19,12 +19,8 @@ export const useProjects = () => {
     try {
       if (isLoggedIn && user?.uid) {
         try {
-          console.log('[useProjects] Loading projects for user:', user.uid);
           const apiProjects = await apiClient.getProjects();
-          console.log('[useProjects] API returned', apiProjects.length, 'projects');
-          if (apiProjects.length > 0) {
-            apiProjects.forEach(p => console.log('[useProjects]   - Project:', p.name, 'ID:', p.id, 'userId:', p.userId));
-          } else {
+          if (apiProjects.length === 0) {
             console.warn('[useProjects] No projects returned from API for user:', user.uid);
           }
           setProjects(apiProjects);
@@ -38,7 +34,6 @@ export const useProjects = () => {
           return [];
         }
       } else {
-        console.log('[useProjects] User not logged in, returning empty projects');
         setProjects([]);
         setIsLoading(false);
         return [];
@@ -65,12 +60,9 @@ export const useProjects = () => {
   const createProject = useCallback(async (projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'templateCount' | 'contactCount'>) => {
     try {
       if (isLoggedIn && user?.uid) {
-        console.log('Creating project:', projectData.name);
         const created = await apiClient.createProject(projectData);
-        console.log('Project created:', created.id, created.name);
         // Reload projects to ensure we have the latest list
-        const reloaded = await loadProjects();
-        console.log('Projects after reload:', reloaded.length);
+        await loadProjects();
         return created;
       }
       throw new Error('Must be logged in to create projects');

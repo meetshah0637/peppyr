@@ -431,14 +431,12 @@ export const TemplateLibrary: React.FC = () => {
               if (editingProject) {
                 await updateProject(editingProject.id, projectData);
               } else {
-                const created = await createProject(projectData);
-                console.log('Project created in TemplateLibrary:', created);
+                await createProject(projectData);
               }
               setIsProjectManagerOpen(false);
               setEditingProject(null);
               // Reload projects to ensure the list is updated
-              const reloaded = await reloadProjects();
-              console.log('Projects reloaded in TemplateLibrary:', reloaded.length);
+              await reloadProjects();
             } catch (error) {
               console.error('Failed to save project:', error);
             }

@@ -56,15 +56,11 @@ class ApiClient {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    console.log('[ApiClient] Making request:', options.method || 'GET', url, token ? 'with token' : 'without token');
-
     try {
       const response = await fetch(url, {
         ...options,
         headers,
       });
-
-      console.log('[ApiClient] Response status:', response.status, response.statusText);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -79,7 +75,6 @@ class ApiClient {
       }
 
       const data = await response.json();
-      console.log('[ApiClient] Response data:', Array.isArray(data) ? `${data.length} items` : 'object');
       return data;
     } catch (error: any) {
       console.error('[ApiClient] Request failed:', error.message);
