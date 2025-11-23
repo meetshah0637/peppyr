@@ -125,8 +125,14 @@ export const useParameters = () => {
     
     // Update state immediately (optimistic update)
     // Create a new object reference to ensure React detects the change
-    setParameters({ ...normalizedParams });
+    // Use functional update to ensure we get the latest state
+    setParameters(prev => {
+      const updated = { ...normalizedParams };
+      console.log('Parameters state updated immediately:', updated);
+      return updated;
+    });
 
+    // Save to backend or localStorage
     if (isLoggedIn && user?.uid) {
       try {
         const saved = await apiClient.updateParameters(normalizedParams);
@@ -137,8 +143,14 @@ export const useParameters = () => {
           Object.entries(saved).forEach(([key, value]) => {
             savedNormalized[key.toLowerCase().trim()] = value;
           });
-          // Create new object reference
-          setParameters({ ...savedNormalized });
+          // Create new object reference - this will trigger useEffect in useTemplates
+          setParameters(prev => {
+            const updated = { ...savedNormalized };
+            console.log('Parameters state updated from API response:', updated);
+            return updated;
+          });
+          // Return the saved normalized params
+          return savedNormalized;
         }
       } catch (error) {
         console.error('Failed to save parameters via API:', error);
@@ -147,7 +159,8 @@ export const useParameters = () => {
         settings[PARAMETERS_STORAGE_KEY] = normalizedParams;
         storage.saveSettings(settings);
         console.log('Parameters saved to localStorage (fallback):', normalizedParams);
-        // State already updated above, so it's fine
+        // State already updated above, return normalized params
+        return normalizedParams;
       }
     } else {
       // Anonymous mode - save to localStorage
@@ -155,8 +168,12 @@ export const useParameters = () => {
       settings[PARAMETERS_STORAGE_KEY] = normalizedParams;
       storage.saveSettings(settings);
       console.log('Parameters saved to localStorage:', normalizedParams);
-      // State already updated above
+      // State already updated above, return normalized params
+      return normalizedParams;
     }
+    
+    // Return the normalized parameters so caller can use them immediately
+    return normalizedParams;
   }, [isLoggedIn, user?.uid]);
 
   // Update a single parameter

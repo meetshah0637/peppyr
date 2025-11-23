@@ -3,10 +3,11 @@
  * Allows users to set global parameter values for template placeholders
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParameters } from '../hooks/useParameters';
 import { getDefaultParameters, extractParameters } from '../utils/templateParams';
 import { useTemplates } from '../hooks/useTemplates';
+import { ToastContainer, ToastType } from './Toast';
 
 interface ParameterManagerProps {
   isOpen: boolean;
@@ -19,6 +20,15 @@ export const ParameterManager: React.FC<ParameterManagerProps> = ({ isOpen, onCl
   const [localParams, setLocalParams] = useState<Record<string, string>>({});
   const [newParamKey, setNewParamKey] = useState('');
   const [newParamValue, setNewParamValue] = useState('');
+  const [toasts, setToasts] = useState<Array<{ id: string; message: string; type?: ToastType; duration?: number }>>([]);
+
+  const showToast = useCallback((message: string, type: ToastType = 'info', duration = 3000) => {
+    const id = `toast-${Date.now()}-${Math.random()}`;
+    setToasts(prev => [...prev, { id, message, type, duration }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, duration);
+  }, []);
 
   // Get all parameters used in templates
   const usedParameters = React.useMemo(() => {
@@ -42,32 +52,40 @@ export const ParameterManager: React.FC<ParameterManagerProps> = ({ isOpen, onCl
   }, [isOpen, parameters]);
 
   const handleSave = async () => {
-    // Filter out empty values and save all parameters
-    const paramsToSave: Record<string, string> = {};
-    for (const [key, value] of Object.entries(localParams)) {
-      if (value && value.trim()) {
-        paramsToSave[key] = value.trim();
+    try {
+      // Filter out empty values and save all parameters
+      const paramsToSave: Record<string, string> = {};
+      for (const [key, value] of Object.entries(localParams)) {
+        if (value && value.trim()) {
+          paramsToSave[key] = value.trim();
+        }
       }
+      
+      console.log('Saving parameters:', paramsToSave);
+      console.log('Parameter count:', Object.keys(paramsToSave).length);
+      
+      // Save parameters - this will update the state immediately
+      const savedParams = await updateParameters(paramsToSave);
+      console.log('Parameters saved, returned:', savedParams);
+      
+      // Force a reload to ensure all components have the latest parameters
+      // This ensures the ref in useTemplates is updated
+      await reloadParameters();
+      console.log('Parameters reloaded, now available for immediate use');
+      
+      // Show success toast with longer duration (same as template saves)
+      showToast('Parameters saved successfully!', 'success', 5000);
+      
+      // Wait longer before closing to ensure user can see the toast
+      // The toast will remain visible even after modal closes
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      console.log('Parameters are now available for use');
+      onClose();
+    } catch (error) {
+      console.error('Failed to save parameters:', error);
+      showToast('Failed to save parameters. Please try again.', 'error');
     }
-    
-    console.log('Saving parameters:', paramsToSave);
-    console.log('Parameter count:', Object.keys(paramsToSave).length);
-    
-    // Save parameters - this will update the state immediately
-    await updateParameters(paramsToSave);
-    
-    // Small delay to ensure state propagation
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    // Reload parameters to ensure we have the latest from the backend
-    const reloaded = await reloadParameters();
-    console.log('Parameters saved and reloaded:', reloaded);
-    
-    // Additional small delay to ensure all components have updated
-    await new Promise(resolve => setTimeout(resolve, 50));
-    
-    console.log('Parameters are now available for use');
-    onClose();
   };
 
   const handleAddDefault = (key: string) => {
@@ -296,6 +314,12 @@ export const ParameterManager: React.FC<ParameterManagerProps> = ({ isOpen, onCl
           </button>
         </div>
       </div>
+      
+      {/* Toast Notifications */}
+      <ToastContainer
+        toasts={toasts}
+        onRemove={(id) => setToasts(prev => prev.filter(t => t.id !== id))}
+      />
     </div>
   );
 };

@@ -12,18 +12,16 @@ export const Home: React.FC = () => {
   const { user, loading } = useAuth();
   const [showAuth, setShowAuth] = useState(false);
 
-  // Debug logging
+  // Close auth modal when user successfully authenticates
+  // This hook must be called before any early returns to follow Rules of Hooks
   React.useEffect(() => {
-    console.log('[Home] Component rendered', { user: user?.email || 'null', loading, showAuth });
-  }, [user, loading, showAuth]);
+    if (user) {
+      setShowAuth(false);
+    }
+  }, [user]);
 
   // If user is authenticated, they shouldn't see this page (handled by App.tsx)
   // But we'll keep this check just in case
-  if (user) {
-    return null;
-  }
-
-  // Show loading state only briefly, then show home page
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
@@ -32,12 +30,9 @@ export const Home: React.FC = () => {
     );
   }
 
-  // Close auth modal when user successfully authenticates
-  React.useEffect(() => {
-    if (user) {
-      setShowAuth(false);
-    }
-  }, [user]);
+  if (user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30">
