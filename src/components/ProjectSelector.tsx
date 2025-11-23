@@ -24,11 +24,6 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Debug: Log projects
-  React.useEffect(() => {
-    console.log('ProjectSelector - Projects:', projects.length, projects.map(p => ({ id: p.id, name: p.name })));
-  }, [projects]);
-
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

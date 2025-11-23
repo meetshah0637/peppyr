@@ -38,11 +38,15 @@ export function useAuth() {
 
   useEffect(() => {
     if (!isFirebaseConfigured()) {
+      console.warn('Firebase not configured - running in local mode');
       setLoading(false);
+      setUser(null);
       return;
     }
 
-    const unsub = onAuthStateChanged(firebaseAuth(), async (firebaseUser) => {
+    let unsub: (() => void) | undefined;
+    try {
+      unsub = onAuthStateChanged(firebaseAuth(), async (firebaseUser) => {
       if (firebaseUser) {
         try {
           // Get ID token and verify with backend
@@ -72,9 +76,17 @@ export function useAuth() {
         setUser(null);
       }
       setLoading(false);
-    });
+      });
+    } catch (error) {
+      console.error('Firebase auth initialization error:', error);
+      setLoading(false);
+      setUser(null);
+      return;
+    }
 
-    return () => unsub();
+    return () => {
+      if (unsub) unsub();
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -135,16 +147,19 @@ export function useAuth() {
   }, []);
 
   const logout = useCallback(async () => {
-    if (!isFirebaseConfigured()) {
-      setError('Firebase is not configured. Authentication is disabled.');
-      return;
-    }
     try {
-      await signOut(firebaseAuth());
+      // Clear user state immediately for better UX
       setUser(null);
+      setLoading(false);
+      
+      if (isFirebaseConfigured()) {
+        await signOut(firebaseAuth());
+      }
+      // User state is already cleared above, onAuthStateChanged will confirm it
     } catch (err: any) {
+      console.error('Logout error:', err);
+      // Even if signOut fails, we've already cleared the user state
       setError(err.message || 'Logout failed');
-      throw err;
     }
   }, []);
 

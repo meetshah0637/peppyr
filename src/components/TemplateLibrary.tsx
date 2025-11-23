@@ -3,7 +3,7 @@
  * Displays templates in a grid with search, filtering, and management features
  */
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Template } from '../types';
 import { useTemplates } from '../hooks/useTemplates';
 import { useProjects } from '../hooks/useProjects';
@@ -12,6 +12,8 @@ import { TemplateEditor } from './TemplateEditor';
 import { ParameterManager } from './ParameterManager';
 import { ProjectSelector } from './ProjectSelector';
 import { ProjectManager } from './ProjectManager';
+import { ToastContainer, ToastType } from './Toast';
+import { DeleteConfirmModal } from './DeleteConfirmModal';
 
 export const TemplateLibrary: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,6 +29,21 @@ export const TemplateLibrary: React.FC = () => {
   const [isParameterManagerOpen, setIsParameterManagerOpen] = useState(false);
   const [isProjectManagerOpen, setIsProjectManagerOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<any>(null);
+  const [toasts, setToasts] = useState<Array<{ id: string; message: string; type?: ToastType; duration?: number }>>([]);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; templateId: string | null; templateTitle: string | null; isDeleting: boolean }>({
+    isOpen: false,
+    templateId: null,
+    templateTitle: null,
+    isDeleting: false
+  });
+
+  const showToast = useCallback((message: string, type: ToastType = 'info', duration = 3000) => {
+    const id = `toast-${Date.now()}-${Math.random()}`;
+    setToasts(prev => [...prev, { id, message, type, duration }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, duration);
+  }, []);
 
   const {
     projects,
@@ -122,15 +139,28 @@ export const TemplateLibrary: React.FC = () => {
     });
   };
 
-  const handleSaveTemplate = (templateData: Omit<Template, 'id' | 'createdAt' | 'copyCount' | 'lastUsed'>) => {
-    createTemplate({
-      ...templateData,
-      projectId: selectedProjectId || null
-    });
+  const handleSaveTemplate = async (templateData: Omit<Template, 'id' | 'createdAt' | 'copyCount' | 'lastUsed'>) => {
+    try {
+      await createTemplate({
+        ...templateData,
+        projectId: selectedProjectId || null
+      });
+      showToast(editorState.isCreating ? 'Template created successfully!' : 'Template saved successfully!', 'success', 5000);
+      handleCloseEditor();
+    } catch (error) {
+      console.error('Failed to save template:', error);
+      showToast('Failed to save template. Please try again.', 'error');
+    }
   };
 
-  const handleUpdateTemplate = (id: string, updates: Partial<Template>) => {
-    updateTemplate(id, updates);
+  const handleUpdateTemplate = async (id: string, updates: Partial<Template>) => {
+    try {
+      await updateTemplate(id, updates);
+      showToast('Template updated successfully!', 'success', 5000);
+    } catch (error) {
+      console.error('Failed to update template:', error);
+      showToast('Failed to update template. Please try again.', 'error');
+    }
   };
 
   const handleCloseEditor = () => {
@@ -139,6 +169,38 @@ export const TemplateLibrary: React.FC = () => {
       editingTemplate: null,
       isCreating: false
     });
+  };
+
+  const handleDeleteTemplate = (templateId: string) => {
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setDeleteConfirm({
+        isOpen: true,
+        templateId: template.id,
+        templateTitle: template.title,
+        isDeleting: false
+      });
+    }
+  };
+
+  const confirmDeleteTemplate = async () => {
+    if (!deleteConfirm.templateId) return;
+
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true }));
+
+    try {
+      await deleteTemplate(deleteConfirm.templateId);
+      showToast('Template deleted successfully!', 'success', 5000);
+      setDeleteConfirm({ isOpen: false, templateId: null, templateTitle: null, isDeleting: false });
+    } catch (error) {
+      console.error('Failed to delete template:', error);
+      showToast('Failed to delete template. Please try again.', 'error');
+      setDeleteConfirm(prev => ({ ...prev, isDeleting: false }));
+    }
+  };
+
+  const cancelDeleteTemplate = () => {
+    setDeleteConfirm({ isOpen: false, templateId: null, templateTitle: null, isDeleting: false });
   };
 
   if (isLoading) {
@@ -322,7 +384,7 @@ export const TemplateLibrary: React.FC = () => {
               onToggleFavorite={toggleFavorite}
               onEdit={handleEditTemplate}
               onDuplicate={duplicateTemplate}
-              onDelete={deleteTemplate}
+              onDelete={handleDeleteTemplate}
             />
           ))}
         </div>
@@ -344,6 +406,24 @@ export const TemplateLibrary: React.FC = () => {
         onClose={() => setIsParameterManagerOpen(false)}
       />
 
+      {/* Toast Notifications */}
+      <ToastContainer
+        toasts={toasts}
+        onRemove={(id) => setToasts(prev => prev.filter(t => t.id !== id))}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteConfirm.isOpen}
+        title="Delete Template"
+        message="Are you sure you want to delete this template?"
+        itemName={deleteConfirm.templateTitle || undefined}
+        onConfirm={confirmDeleteTemplate}
+        onCancel={cancelDeleteTemplate}
+        confirmText="Delete Template"
+        isDeleting={deleteConfirm.isDeleting}
+      />
+
       {/* Project Manager Modal */}
       {isProjectManagerOpen && (
         <ProjectManager
@@ -353,14 +433,12 @@ export const TemplateLibrary: React.FC = () => {
               if (editingProject) {
                 await updateProject(editingProject.id, projectData);
               } else {
-                const created = await createProject(projectData);
-                console.log('Project created in TemplateLibrary:', created);
+                await createProject(projectData);
               }
               setIsProjectManagerOpen(false);
               setEditingProject(null);
               // Reload projects to ensure the list is updated
-              const reloaded = await reloadProjects();
-              console.log('Projects reloaded in TemplateLibrary:', reloaded.length);
+              await reloadProjects();
             } catch (error) {
               console.error('Failed to save project:', error);
             }

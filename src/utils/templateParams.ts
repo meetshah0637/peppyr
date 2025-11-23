@@ -39,26 +39,13 @@ export function replaceParameters(text: string, parameters: Record<string, strin
   let result = text;
   const placeholdersFound = extractParameters(text);
   
-  console.log('Parameter replacement - Input:', { 
-    text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
-    parameters,
-    placeholdersFound
-  });
-  
   // Replace all {key} placeholders with their values
   Object.entries(parameters).forEach(([key, value]) => {
     if (value && value.trim()) {
       // Escape special regex characters in the key
       const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const regex = new RegExp(`\\{${escapedKey}\\}`, 'gi'); // Case-insensitive match
-      const beforeReplace = result;
       result = result.replace(regex, value.trim());
-      
-      if (beforeReplace !== result) {
-        console.log(`✓ Replaced {${key}} with "${value.trim()}"`);
-      } else if (placeholdersFound.includes(key.toLowerCase())) {
-        console.warn(`⚠ Placeholder {${key}} found in text but not replaced. Check case sensitivity.`);
-      }
     } else if (placeholdersFound.includes(key.toLowerCase())) {
       console.warn(`⚠ Parameter "${key}" has no value (empty or whitespace)`);
     }
@@ -70,11 +57,6 @@ export function replaceParameters(text: string, parameters: Record<string, strin
     console.warn('⚠ Unreplaced placeholders remaining:', remainingPlaceholders);
     console.warn('Available parameters:', Object.keys(parameters));
   }
-  
-  console.log('Parameter replacement - Output:', { 
-    result: result.substring(0, 100) + (result.length > 100 ? '...' : ''),
-    wasReplaced: result !== text
-  });
   
   return result;
 }

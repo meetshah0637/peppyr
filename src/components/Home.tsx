@@ -20,6 +20,14 @@ export const Home: React.FC = () => {
     }
   }, [user]);
 
+  // Close auth modal when user successfully authenticates
+  // This hook must be called before any early returns to follow Rules of Hooks
+  React.useEffect(() => {
+    if (user) {
+      setShowAuth(false);
+    }
+  }, [user]);
+
   // If user is authenticated, they shouldn't see this page (handled by App.tsx)
   // But we'll keep this check just in case
   if (loading) {

@@ -31,12 +31,10 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    console.log('[DeleteConfirmModal] Confirm button clicked');
     onConfirm();
   };
 
   const handleCancel = () => {
-    console.log('[DeleteConfirmModal] Cancel button clicked');
     onCancel();
   };
 

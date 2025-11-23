@@ -24,7 +24,6 @@ export const useTemplates = () => {
   const parametersRef = useRef(parameters);
   useEffect(() => {
     parametersRef.current = parameters;
-    console.log('Parameters ref updated:', parameters);
   }, [parameters]);
 
   // Load templates function
@@ -191,24 +190,19 @@ export const useTemplates = () => {
     }
 
     try {
-      // Always get the latest parameters from ref (avoids stale closures)
-      const currentParams = parametersRef.current || {};
+      // Get the latest parameters - use current state first, fallback to ref
+      // This ensures we always have the most up-to-date parameters
+      const currentParams = parameters || parametersRef.current || {};
       
-      console.log('Copying template:', { 
-        id, 
-        contactId,
-        bodyPreview: template.body.substring(0, 100) + '...', 
-        parameters: currentParams,
-        parameterKeys: Object.keys(currentParams),
-        parameterCount: Object.keys(currentParams).length,
-        hasCompany: 'company' in currentParams,
-        companyValue: currentParams['company'],
-        allParams: JSON.stringify(currentParams)
+      // Normalize parameter keys to lowercase for consistent matching
+      const normalizedParams: Record<string, string> = {};
+      Object.entries(currentParams).forEach(([key, value]) => {
+        if (value && value.trim()) {
+          normalizedParams[key.toLowerCase().trim()] = value.trim();
+        }
       });
       
-      const processedBody = replaceParameters(template.body, currentParams);
-      console.log('Processed body preview:', processedBody.substring(0, 100) + '...');
-      console.log('Was replaced:', processedBody !== template.body);
+      const processedBody = replaceParameters(template.body, normalizedParams);
       
       await clipboard.copyText(processedBody);
       
@@ -241,7 +235,7 @@ export const useTemplates = () => {
       console.error('Failed to copy template:', error);
       throw error;
     }
-  }, [templates, parameters, updateTemplate, isLoggedIn]);
+  }, [templates, parameters, updateTemplate, isLoggedIn, parametersRef]);
 
   // Toggle favorite status
   const toggleFavorite = useCallback(async (id: string) => {
